@@ -13,14 +13,14 @@ class AuthController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:4|confirmed',
         ]);
 
         $user = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
-            'role' => 'patient',
+            'role' => 'paciente',
         ]);
 
         return response()->json([
@@ -33,11 +33,15 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validatedData = $request->validate([
-            'email' => 'required|string|email',
+            'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $validatedData['email'])->first();
+        $identifier = $validatedData['email'];
+        $user = User::where(function ($query) use ($identifier) {
+            $query->where('email', $identifier)
+                ->orWhere('name', $identifier);
+        })->first();
 
         if (!$user || !Hash::check($validatedData['password'], $user->password)) {
             return response()->json([
