@@ -3,37 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
     public function show(Request $request)
     {
-        $user = $request->user();
+        Gate::authorize('perfil.ver');
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No autenticado',
-            ], 401);
-        }
+        $user = $request->user();
 
         return response()->json([
             'success' => true,
-            'user' => $user,
+            'user' => $user->toFrontendArray(),
         ]);
     }
 
     public function update(Request $request)
     {
-        $user = $request->user();
+        Gate::authorize('perfil.editar');
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No autenticado',
-            ], 401);
-        }
+        $user = $request->user();
 
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -61,7 +52,7 @@ class ProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Perfil actualizado correctamente',
-            'user' => $user->fresh(),
+            'user' => $user->fresh()->toFrontendArray(),
         ]);
     }
 }
