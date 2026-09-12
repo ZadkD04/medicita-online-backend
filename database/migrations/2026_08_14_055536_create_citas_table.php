@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('citas', function (Blueprint $table) {
@@ -17,14 +14,13 @@ return new class extends Migration
             $table->foreignId('patient_id')->constrained('users')->onDelete('cascade');
             $table->date('appointment_date');
             $table->time('appointment_time');
+            $table->string('specialty')->nullable();
+            $table->text('reason')->nullable();
             $table->string('status')->default('pendiente');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('citas');

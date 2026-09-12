@@ -14,6 +14,8 @@ class Cita extends Model
         'patient_id',
         'appointment_date',
         'appointment_time',
+        'specialty',
+        'reason',
         'status',
     ];
 

@@ -28,17 +28,20 @@ class CitaController extends Controller
         return $query->get();
     }
 
-    public function store(Request $request)
+public function store(Request $request)
     {
         Gate::authorize('citas.crear');
 
         $user = $request->user();
 
+        // Se agregaron specialty y reason a las reglas de validación
         $validatedData = $request->validate([
             'doctor_id' => 'required|exists:users,id',
             'patient_id' => 'nullable|exists:users,id',
             'appointment_date' => 'required|date',
             'appointment_time' => 'required|date_format:H:i',
+            'specialty' => 'nullable|string|max:150',
+            'reason' => 'nullable|string',
             'status' => 'nullable|string',
         ]);
 

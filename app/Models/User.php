@@ -152,8 +152,16 @@ class User extends Authenticatable
             'role' => $this->primaryRoleName(),
             'roles' => $this->roles->pluck('nombre')->values()->all(),
             'permissions' => $this->permissionKeys(),
-            'phone' => $this->telefono,
             'specialty' => $this->specialty,
+            'fecha_nacimiento' => $this->fecha_nacimiento,
+            'sexo' => $this->sexo,
+            'telefono' => $this->telefono,
+            'peso' => $this->peso,
+            'altura' => $this->altura,
+            'direccion' => $this->direccion,
+            'ciudad' => $this->ciudad,
+            'contacto_emergencia' => $this->contacto_emergencia,
+            'telefono_emergencia' => $this->telefono_emergencia,
         ];
     }
 
