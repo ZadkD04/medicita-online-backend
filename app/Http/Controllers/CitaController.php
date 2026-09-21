@@ -4,18 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Cita;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class CitaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
+        Gate::authorize('citas.listar');
+
         $user = $request->user();
         $query = Cita::with(['doctor', 'patient'])->latest();
 
-        if ($user->role === 'doctor') {
+        if ($user->hasPermission('citas.listar_todas')) {
+            return $query->get();
+        }
+
+        if ($user->hasRole('doctor')) {
             $query->where('doctor_id', $user->id);
         } else {
             $query->where('patient_id', $user->id);
@@ -24,11 +28,10 @@ class CitaController extends Controller
         return $query->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
+        Gate::authorize('citas.crear');
+
         $user = $request->user();
 
         $validatedData = $request->validate([
@@ -39,7 +42,7 @@ class CitaController extends Controller
             'status' => 'nullable|string',
         ]);
 
-        if ($user->role !== 'doctor') {
+        if (!$user->hasRole('doctor') && !$user->hasPermission('citas.listar_todas')) {
             $validatedData['patient_id'] = $user->id;
         } elseif (empty($validatedData['patient_id'])) {
             $validatedData['patient_id'] = $user->id;
@@ -52,11 +55,10 @@ class CitaController extends Controller
         return response()->json($cita->load(['doctor', 'patient']), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Request $request, Cita $cita)
     {
+        Gate::authorize('citas.listar');
+
         if (!$this->canAccess($request->user(), $cita)) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
@@ -64,11 +66,10 @@ class CitaController extends Controller
         return $cita->load(['doctor', 'patient']);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Cita $cita)
     {
+        Gate::authorize('citas.editar');
+
         if (!$this->canAccess($request->user(), $cita)) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
@@ -86,11 +87,10 @@ class CitaController extends Controller
         return $cita->load(['doctor', 'patient']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $request, Cita $cita)
     {
+        Gate::authorize('citas.eliminar');
+
         if (!$this->canAccess($request->user(), $cita)) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
@@ -105,7 +105,11 @@ class CitaController extends Controller
             return false;
         }
 
-        if ($user->role === 'doctor') {
+        if ($user->hasPermission('citas.listar_todas')) {
+            return true;
+        }
+
+        if ($user->hasRole('doctor')) {
             return (int) $cita->doctor_id === (int) $user->id;
         }
 
